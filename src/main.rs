@@ -13,6 +13,7 @@ fn handle_conn(stream: &mut TcpStream) {
     stream.read(&mut request_buffer).unwrap();
 
     let request_str = std::str::from_utf8(&request_buffer).unwrap();
+    println!("[DATA]: {}", request_str);
     let req = parse_request(request_str);
 
     let response = match req.path.as_str() {
