@@ -21,12 +21,12 @@ fn handle_conn(stream: &mut TcpStream) {
         s if s.starts_with("/echo/") => {
             // let mut temp_resp = String::from(OK_RESPONSE);
 
-            let echo_text: String = req.path.split("/").skip(2).collect();
+            // let echo_text: String = req.path.split("/").skip(2).collect();
+            let temp: String = req.path.replace("/echo/", "");
             // temp_resp.push_str(
             //     format!("Content-Length: {}\r\n\r\n{}", echo_text.len(), echo_text).as_str(),
             // );
-            let response =
-                create_response("200 OK".to_string(), "text/plain".to_string(), echo_text);
+            let response = create_response("200 OK".to_string(), "text/plain".to_string(), temp);
             println!("{}", &response);
             response
         }
