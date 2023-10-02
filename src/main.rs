@@ -15,18 +15,20 @@ fn handle_conn(stream: &mut TcpStream) {
     let request_str = std::str::from_utf8(&request_buffer).unwrap();
     let req = parse_request(request_str);
 
-    if req.path.starts_with("/echo/") {
-        let mut response = String::from(OK_RESPONSE);
-        let echo_text = req.path.split("/").last().expect("Couldn't parse route");
-        response.push_str(format!("Content-Length: {}", echo_text.len()).as_str());
+    let response = match req.path.as_str() {
+        "/" => String::from(OK_RESPONSE),
+        s if s.starts_with("/echo/") => {
+            let mut temp_resp = String::from(OK_RESPONSE);
+            let echo_text = req.path.split("/").last().expect("Couldn't parse route");
+            temp_resp.push_str(format!("Content-Length: {}", echo_text.len()).as_str());
 
-        stream
-            .write(response.as_bytes())
-            .expect("Couldn't return response");
-    }
+            temp_resp
+        }
+        _ => String::from(NOT_FOUND_RESPONSE),
+    };
 
     stream
-        .write(NOT_FOUND_RESPONSE.as_bytes())
+        .write(response.as_bytes())
         .expect("Couldn't return response");
 }
 
