@@ -58,10 +58,6 @@ fn main() {
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
-                stream
-                    .write(b"HTTP/1.1 200 OK\r\n\r\n")
-                    .expect("Failed to send msg");
-
                 handle_conn(&mut stream);
 
                 println!("accepted new connection");
