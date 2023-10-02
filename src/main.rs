@@ -20,7 +20,7 @@ fn handle_conn(stream: &mut TcpStream) {
         s if s.starts_with("/echo/") => {
             let mut temp_resp = String::from(OK_RESPONSE);
 
-            let echo_text: String = req.path.split("/").skip(1).collect();
+            let echo_text: String = req.path.split("/").skip(2).collect();
             temp_resp.push_str(
                 format!("Content-Length: {}\r\n\r\n{}", echo_text.len(), echo_text).as_str(),
             );
