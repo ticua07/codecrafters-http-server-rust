@@ -21,11 +21,14 @@ impl HTTPRequest {
 }
 
 pub fn create_response(code: String, content_type: String, body: String) -> String {
-    let cont_len = body.chars().count();
+    let mut content = body.clone();
+    content.push_str("\r");
+    let cont_len = content.chars().count();
+
     println!("PLEASE");
     return format!(
         "HTTP/1.1 {}\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n{}",
-        code, content_type, cont_len, body
+        code, content_type, cont_len, content
     );
 }
 
