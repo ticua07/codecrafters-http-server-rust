@@ -15,13 +15,18 @@ fn handle_conn(stream: &mut TcpStream) {
     let request_str = std::str::from_utf8(&request_buffer).unwrap();
     let req = parse_request(request_str);
 
-    let response = match req.path.as_str() {
-        "/" => String::from(OK_RESPONSE),
-        _ => String::from(NOT_FOUND_RESPONSE),
-    };
+    if req.path.starts_with("/echo/") {
+        let mut response = String::from(OK_RESPONSE);
+        let echo_text = req.path.split("/").last().expect("Couldn't parse route");
+        response.push_str(format!("Content-Length: {}", echo_text.len()).as_str());
+
+        stream
+            .write(response.as_bytes())
+            .expect("Couldn't return response");
+    }
 
     stream
-        .write(response.as_bytes())
+        .write(NOT_FOUND_RESPONSE.as_bytes())
         .expect("Couldn't return response");
 }
 
@@ -29,13 +34,13 @@ fn parse_request(request_string: &str) -> HTTPRequest {
     let lines: Vec<&str> = request_string.lines().collect();
     let mut first_line = lines[0].split_ascii_whitespace();
 
-    let method = match first_line.next().unwrap() {
+    let method = match first_line.next().expect("Couldn't parse request") {
         "GET" => HTTPMethod::GET,
         "POST" => HTTPMethod::POST,
         _ => HTTPMethod::INVALID,
     };
 
-    let route = first_line.next().unwrap();
+    let route = first_line.next().expect("Couldn't parse request");
     println!("{} -> {}", method, route);
 
     HTTPRequest::new(method, route.to_string())
