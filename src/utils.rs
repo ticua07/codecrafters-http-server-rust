@@ -21,13 +21,10 @@ impl HTTPRequest {
 }
 
 pub fn create_response(code: String, content_type: String, body: String) -> String {
-    let cont_len = body.len();
+    let cont_len = body.chars().count();
     return format!(
         "HTTP/1.1 {}\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n{}",
-        code,
-        content_type,
-        cont_len + 1,
-        body
+        code, content_type, cont_len, body
     );
 }
 
