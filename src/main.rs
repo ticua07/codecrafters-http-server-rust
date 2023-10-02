@@ -20,8 +20,10 @@ fn handle_conn(stream: &mut TcpStream) {
         s if s.starts_with("/echo/") => {
             let mut temp_resp = String::from(OK_RESPONSE);
             let echo_text = req.path.split("/").last().expect("Couldn't parse route");
-            temp_resp.push_str(format!("Content-Length: {}", echo_text.len()).as_str());
-
+            temp_resp.push_str(
+                format!("Content-Length: {}\r\n\r\n{}", echo_text.len(), echo_text).as_str(),
+            );
+            println!("{}", &temp_resp);
             temp_resp
         }
         _ => String::from(NOT_FOUND_RESPONSE),
@@ -56,10 +58,12 @@ fn main() {
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
-                handle_conn(&mut stream);
                 stream
                     .write(b"HTTP/1.1 200 OK\r\n\r\n")
                     .expect("Failed to send msg");
+
+                handle_conn(&mut stream);
+
                 println!("accepted new connection");
             }
             Err(e) => {
