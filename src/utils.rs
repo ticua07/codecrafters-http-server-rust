@@ -11,13 +11,21 @@ pub enum HTTPMethod {
     INVALID,
 }
 
-pub const OK_RESPONSE: &str = "HTTP/1.1 200 OK\r\n\r\nContent-Type: text/plain\r\n";
+pub const OK_RESPONSE: &str = "HTTP/1.1 200 OK\r\n\r\n";
 pub const NOT_FOUND_RESPONSE: &str = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
 
 impl HTTPRequest {
     pub fn new(method: HTTPMethod, path: String) -> Self {
         Self { method, path }
     }
+}
+
+pub fn create_response(code: String, content_type: String, body: String) -> String {
+    let cont_len = body.len();
+    return format!(
+        "HTTP/1.1 {}\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n{}",
+        code, content_type, cont_len, body
+    );
 }
 
 impl std::fmt::Display for HTTPMethod {
