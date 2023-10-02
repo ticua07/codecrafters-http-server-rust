@@ -2,9 +2,9 @@
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 
-use utils::{HTTPMethod, NOT_FOUND_RESPONSE, OK_RESPONSE};
+use utils::{NOT_FOUND_RESPONSE, OK_RESPONSE};
 
-use crate::utils::{create_response, HTTPRequest};
+use crate::utils::{create_response, parse_request};
 mod utils;
 
 fn handle_conn(stream: &mut TcpStream) {
@@ -17,15 +17,21 @@ fn handle_conn(stream: &mut TcpStream) {
     let req = parse_request(request_str);
 
     let response = match req.path.as_str() {
-        "/" => String::from(OK_RESPONSE),
+        "/" => create_response(
+            "200 OK".to_string(),
+            "text/plain".to_string(),
+            String::new(),
+        ),
+        "/user-agent" => create_response(
+            "200 OK".to_string(),
+            "text/plain".to_string(),
+            req.headers
+                .get(&"User-Agent" as &str)
+                .expect("Couldn't find header User-Agent")
+                .clone(),
+        ),
         s if s.starts_with("/echo/") => {
-            // let mut temp_resp = String::from(OK_RESPONSE);
-
-            // let echo_text: String = req.path.split("/").skip(2).collect();
             let temp: String = req.path.replace("/echo/", "");
-            // temp_resp.push_str(
-            //     format!("Content-Length: {}\r\n\r\n{}", echo_text.len(), echo_text).as_str(),
-            // );
             let response = create_response("200 OK".to_string(), "text/plain".to_string(), temp);
             println!("{}", &response);
             response
@@ -36,22 +42,6 @@ fn handle_conn(stream: &mut TcpStream) {
     stream
         .write(response.as_bytes())
         .expect("Couldn't return response");
-}
-
-fn parse_request(request_string: &str) -> HTTPRequest {
-    let lines: Vec<&str> = request_string.lines().collect();
-    let mut first_line = lines[0].split_ascii_whitespace();
-
-    let method = match first_line.next().expect("Couldn't parse request") {
-        "GET" => HTTPMethod::GET,
-        "POST" => HTTPMethod::POST,
-        _ => HTTPMethod::INVALID,
-    };
-
-    let route = first_line.next().expect("Couldn't parse request");
-    println!("{} -> {}", method, route);
-
-    HTTPRequest::new(method, route.to_string())
 }
 
 fn main() {
