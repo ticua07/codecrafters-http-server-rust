@@ -19,7 +19,8 @@ fn handle_conn(stream: &mut TcpStream) {
         "/" => String::from(OK_RESPONSE),
         s if s.starts_with("/echo/") => {
             let mut temp_resp = String::from(OK_RESPONSE);
-            let echo_text = req.path.split("/").last().expect("Couldn't parse route");
+
+            let echo_text: String = req.path.split("/").skip(1).collect();
             temp_resp.push_str(
                 format!("Content-Length: {}\r\n\r\n{}", echo_text.len(), echo_text).as_str(),
             );
