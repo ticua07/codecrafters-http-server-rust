@@ -15,7 +15,6 @@ pub fn get_directory() -> Option<String> {
     }
 
     let mut path = PathBuf::new();
-    path = path.join(std::env::current_dir().unwrap());
     path = path.join(
         &directory
             .clone()
