@@ -1,7 +1,7 @@
 use std::{env, path::PathBuf};
 
 use itertools::Itertools;
-pub fn get_directory() -> Option<PathBuf> {
+pub fn get_directory() -> Option<String> {
     let args = env::args().skip(1).tuple_windows();
     // .position(|(elem, next)| elem == "--directory" && Path::new(&next).is_dir());
     let mut directory: Option<String> = None;
@@ -26,7 +26,7 @@ pub fn get_directory() -> Option<PathBuf> {
     println!("{:?}", path);
 
     if path.is_dir() {
-        return Some(path);
+        return Some(String::from(path.to_str().unwrap()));
     }
 
     return None;
