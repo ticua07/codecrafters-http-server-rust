@@ -35,6 +35,21 @@ fn handle_conn(stream: &mut TcpStream, directory: String) {
                 .expect("Couldn't find header User-Agent")
                 .clone(),
         ),
+        s if s.starts_with("/files/") => {
+            let filename = req.path.replace("/files/", "");
+            let mut path = PathBuf::new();
+            path = path.join(directory);
+            path = path.join(filename);
+            if PathBuf::from(&path).is_file() {
+                create_response(
+                    "200 OK".to_string(),
+                    "application/octet-stream".to_string(),
+                    std::fs::read_to_string(&path).expect("Couldn't read the file"),
+                )
+            } else {
+                String::from(NOT_FOUND_RESPONSE)
+            }
+        }
         s if s.starts_with("/echo/") => {
             let temp: String = req.path.replace("/echo/", "");
             let response = create_response("200 OK".to_string(), "text/plain".to_string(), temp);
