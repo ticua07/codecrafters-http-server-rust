@@ -1,8 +1,8 @@
-use std::fs::File;
+use std::fs::{self, File};
 // Uncomment this block to pass the first stage
 use std::io::{prelude::*, BufReader};
 use std::net::{TcpListener, TcpStream};
-use std::path::PathBuf;
+use std::path::{self, PathBuf};
 use std::thread;
 use utils::NOT_FOUND_RESPONSE;
 
@@ -11,14 +11,14 @@ use crate::utils::{create_response, parse_request, serve_file};
 mod cli;
 mod utils;
 
-fn handle_conn(stream: &mut TcpStream, directory: String) {
+fn handle_conn(stream: &mut TcpStream, directory: PathBuf) {
     let mut request_buffer = [0; 512];
 
     stream.read(&mut request_buffer).unwrap();
 
     let request_str = std::str::from_utf8(&request_buffer).unwrap();
     println!("[DATA]: {}", request_str);
-    println!("[DIRECTORY]: {directory}");
+    println!("[DIRECTORY]: {:?}", directory);
 
     let req = parse_request(request_str);
 
@@ -38,21 +38,15 @@ fn handle_conn(stream: &mut TcpStream, directory: String) {
         ),
         s if s.starts_with("/files/") => {
             let filename = req.path.replace("/files/", "");
-            let mut path = PathBuf::new();
-            path = path.join(&directory);
-            path = path.join(filename);
 
-            for entry in PathBuf::from(&directory)
-                .read_dir()
-                .expect("read_dir call failed")
-            {
+            for entry in directory.read_dir().expect("read_dir call failed") {
                 if let Ok(entry) = entry {
                     println!("{:?}", entry.path());
                 }
             }
 
-            println!("[PATH]: {:#?}", path);
-            serve_file(path)
+            println!("[PATH]: {:#?}", directory);
+            serve_file(directory.join(filename))
         }
         s if s.starts_with("/echo/") => {
             let temp: String = req.path.replace("/echo/", "");
@@ -77,8 +71,8 @@ fn main() {
 
     println!("GETTING ARGUMENTS");
 
-    let files_dir = get_directory().unwrap();
-    println!("{files_dir}");
+    let files_dir = get_directory();
+    println!("{:?}", files_dir);
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
     thread::scope(|_| {
