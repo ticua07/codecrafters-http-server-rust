@@ -41,7 +41,7 @@ fn handle_conn(stream: &mut TcpStream, directory: String) {
             let mut path = PathBuf::new();
             path = path.join(directory);
             path = path.join(filename);
-            println!("[PATH]: {:#?}", path);
+            println!("[PATH]: {:#?}, is_dir? {}", path, path.is_dir());
             serve_file(path)
         }
         s if s.starts_with("/echo/") => {
