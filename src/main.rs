@@ -49,7 +49,11 @@ fn handle_conn(stream: &mut TcpStream, directory: String) {
             let response = create_response("200 OK".to_string(), "text/plain".to_string(), temp);
             response
         }
-        _ => String::from(NOT_FOUND_RESPONSE),
+        _ => String::from(create_response(
+            "404 NOT FOUND".to_string(),
+            "text/plain".to_string(),
+            "not found.".to_string(),
+        )),
     };
 
     stream
