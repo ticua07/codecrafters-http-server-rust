@@ -1,7 +1,7 @@
 // Uncomment this block to pass the first stage
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
-use std::path::{self, PathBuf};
+use std::path::PathBuf;
 use std::thread;
 use utils::NOT_FOUND_RESPONSE;
 
