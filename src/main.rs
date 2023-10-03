@@ -40,6 +40,7 @@ fn handle_conn(stream: &mut TcpStream, directory: String) {
             let mut path = PathBuf::new();
             path = path.join(directory);
             path = path.join(filename);
+            println!("[PATH]: {:#?}", path);
             if PathBuf::from(&path).is_file() {
                 create_response(
                     "200 OK".to_string(),

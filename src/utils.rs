@@ -56,6 +56,8 @@ pub fn parse_request(request_string: &str) -> HTTPRequest {
 pub fn create_response(code: String, content_type: String, body: String) -> String {
     let cont_len = body.len();
 
+    println!("[SENDING RESPONSE]: {} {} -> {}", code, content_type, body);
+
     return format!(
         "HTTP/1.1 {}\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n{}",
         code, content_type, cont_len, body
