@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug)]
 pub struct HTTPRequest {
@@ -64,6 +67,17 @@ pub fn create_response(code: String, content_type: String, body: String) -> Stri
     );
 }
 
+pub fn serve_file(path: PathBuf) -> String {
+    if path.is_file() {
+        return format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}",
+            std::fs::metadata(&path).unwrap().len(),
+            std::fs::read_to_string(&path).unwrap()
+        );
+    } else {
+        String::from(NOT_FOUND_RESPONSE)
+    }
+}
 impl std::fmt::Display for HTTPMethod {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

@@ -7,7 +7,7 @@ use std::thread;
 use utils::NOT_FOUND_RESPONSE;
 
 use crate::cli::get_directory;
-use crate::utils::{create_response, parse_request};
+use crate::utils::{create_response, parse_request, serve_file};
 mod cli;
 mod utils;
 
@@ -42,18 +42,7 @@ fn handle_conn(stream: &mut TcpStream, directory: String) {
             path = path.join(directory);
             path = path.join(filename);
             println!("[PATH]: {:#?}", path);
-
-            match File::open(&path) {
-                Ok(_) => create_response(
-                    "200 OK".to_string(),
-                    "application/octet-stream".to_string(),
-                    std::fs::read_to_string(&path).unwrap(),
-                ),
-                Err(err) => {
-                    println!("{}", err);
-                    String::from(NOT_FOUND_RESPONSE)
-                }
-            }
+            serve_file(path)
         }
         s if s.starts_with("/echo/") => {
             let temp: String = req.path.replace("/echo/", "");
