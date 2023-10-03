@@ -2,8 +2,9 @@ use std::{env, path::PathBuf};
 
 use itertools::Itertools;
 pub fn get_directory() -> Option<String> {
+    //! TODO: Refactor this unsafe path code.
+
     let args = env::args().skip(1).tuple_windows();
-    // .position(|(elem, next)| elem == "--directory" && Path::new(&next).is_dir());
     let mut directory: Option<String> = None;
 
     for (elem, next) in args {
@@ -18,16 +19,10 @@ pub fn get_directory() -> Option<String> {
     path = path.join(
         &directory
             .clone()
-            .expect("--directory argument is missing")
+            .unwrap_or(String::from("public/"))
             .trim_start_matches(r"\") // WINDOWS HATES HAVING '\' or '/' AT START!
             .trim_start_matches(r"/"),
     );
 
-    println!("{:?}", path);
-
-    if path.is_dir() {
-        return Some(String::from(path.to_str().unwrap()));
-    }
-
-    return None;
+    return Some(String::from(path.to_str().unwrap()));
 }

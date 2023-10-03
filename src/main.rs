@@ -1,7 +1,7 @@
 // Uncomment this block to pass the first stage
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
-use std::path::PathBuf;
+use std::path::{self, PathBuf};
 use std::thread;
 use utils::NOT_FOUND_RESPONSE;
 
@@ -68,10 +68,9 @@ fn main() {
     println!("Logs from your program will appear here!");
 
     println!("GETTING ARGUMENTS");
-    println!("{:?}", get_directory());
 
-    let files_dir = get_directory().unwrap_or(String::from("public/"));
-
+    let files_dir = get_directory().unwrap();
+    println!("{files_dir}");
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
     thread::scope(|_| {
