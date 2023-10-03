@@ -4,7 +4,9 @@ use std::net::{TcpListener, TcpStream};
 use std::thread;
 use utils::NOT_FOUND_RESPONSE;
 
+use crate::cli::get_directory;
 use crate::utils::{create_response, parse_request};
+mod cli;
 mod utils;
 
 fn handle_conn(stream: &mut TcpStream) {
@@ -46,6 +48,15 @@ fn handle_conn(stream: &mut TcpStream) {
 fn main() {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     println!("Logs from your program will appear here!");
+
+    println!("GETTING ARGUMENTS");
+    println!("{:?}", get_directory());
+
+    let result = match get_directory() {
+        Some(res) => res,
+        None => panic!("--directory argument is invalid"),
+    };
+
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
     for stream in listener.incoming() {
