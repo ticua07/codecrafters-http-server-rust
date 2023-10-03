@@ -1,8 +1,8 @@
 // Uncomment this block to pass the first stage
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
-
-use utils::{NOT_FOUND_RESPONSE, OK_RESPONSE};
+use std::thread;
+use utils::NOT_FOUND_RESPONSE;
 
 use crate::utils::{create_response, parse_request};
 mod utils;
@@ -33,7 +33,6 @@ fn handle_conn(stream: &mut TcpStream) {
         s if s.starts_with("/echo/") => {
             let temp: String = req.path.replace("/echo/", "");
             let response = create_response("200 OK".to_string(), "text/plain".to_string(), temp);
-            println!("{}", &response);
             response
         }
         _ => String::from(NOT_FOUND_RESPONSE),
@@ -52,8 +51,9 @@ fn main() {
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
-                handle_conn(&mut stream);
-
+                thread::spawn(move || {
+                    handle_conn(&mut stream);
+                });
                 println!("accepted new connection");
             }
             Err(e) => {

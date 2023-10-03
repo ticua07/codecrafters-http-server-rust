@@ -14,7 +14,6 @@ pub enum HTTPMethod {
     INVALID,
 }
 
-pub const OK_RESPONSE: &str = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
 pub const NOT_FOUND_RESPONSE: &str = "HTTP/1.1 404 NOT FOUND\r\nContent-Length: 0\r\n\r\n";
 
 impl HTTPRequest {
@@ -29,7 +28,6 @@ impl HTTPRequest {
 
 pub fn parse_request(request_string: &str) -> HTTPRequest {
     let lines: Vec<String> = request_string.lines().map(String::from).collect();
-    println!("{:#?}", lines);
     let mut first_line = lines[0].split_ascii_whitespace();
 
     let method = match first_line.next().expect("Couldn't parse request") {
@@ -50,7 +48,6 @@ pub fn parse_request(request_string: &str) -> HTTPRequest {
         }
         let header_values: Vec<String> = header.split(":").map(String::from).collect();
         headers.insert(header_values[0].clone(), header_values[1].trim().to_owned());
-        println!("[HEADER]: {}", header);
     }
 
     HTTPRequest::new(method, route.to_string(), headers)
@@ -59,7 +56,6 @@ pub fn parse_request(request_string: &str) -> HTTPRequest {
 pub fn create_response(code: String, content_type: String, body: String) -> String {
     let cont_len = body.len();
 
-    println!("PLEASE");
     return format!(
         "HTTP/1.1 {}\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n{}",
         code, content_type, cont_len, body
