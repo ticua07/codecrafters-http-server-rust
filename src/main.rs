@@ -1,5 +1,6 @@
+use std::fs::File;
 // Uncomment this block to pass the first stage
-use std::io::prelude::*;
+use std::io::{prelude::*, BufReader};
 use std::net::{TcpListener, TcpStream};
 use std::path::PathBuf;
 use std::thread;
@@ -41,15 +42,25 @@ fn handle_conn(stream: &mut TcpStream, directory: String) {
             path = path.join(directory);
             path = path.join(filename);
             println!("[PATH]: {:#?}", path);
-            if PathBuf::from(&path).is_file() {
-                create_response(
+
+            match File::open(&path) {
+                Ok(_) => create_response(
                     "200 OK".to_string(),
                     "application/octet-stream".to_string(),
-                    std::fs::read_to_string(&path).expect("Couldn't read the file"),
-                )
-            } else {
-                String::from(NOT_FOUND_RESPONSE)
+                    std::fs::read_to_string(&path).unwrap(),
+                ),
+                Err(_) => String::from(NOT_FOUND_RESPONSE),
             }
+
+            // if PathBuf::from(&path).is_file() {
+            //     create_response(
+            //         "200 OK".to_string(),
+            //         "application/octet-stream".to_string(),
+            //         std::fs::read_to_string(&path).expect("Couldn't read the file"),
+            //     )
+            // } else {
+            //     String::from(NOT_FOUND_RESPONSE)
+            // }
         }
         s if s.starts_with("/echo/") => {
             let temp: String = req.path.replace("/echo/", "");
