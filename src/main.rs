@@ -70,7 +70,7 @@ fn main() {
     println!("GETTING ARGUMENTS");
     println!("{:?}", get_directory());
 
-    let files_dir = get_directory().expect("--directory argument is invalid");
+    let files_dir = get_directory().unwrap_or(String::from("public/"));
 
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
