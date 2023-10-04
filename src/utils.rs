@@ -1,13 +1,16 @@
+use std::fs::File;
+use std::io::prelude::*;
 use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Debug)]
 pub struct HTTPRequest {
     pub method: HTTPMethod,
     pub path: String,
+    pub body: String,
     pub headers: HashMap<String, String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HTTPMethod {
     GET,
     POST,
@@ -17,10 +20,16 @@ pub enum HTTPMethod {
 pub const NOT_FOUND_RESPONSE: &str = "HTTP/1.1 404 NOT FOUND\r\nContent-Length: 0\r\n\r\n";
 
 impl HTTPRequest {
-    pub fn new(method: HTTPMethod, path: String, headers: HashMap<String, String>) -> Self {
+    pub fn new(
+        method: HTTPMethod,
+        path: String,
+        body: String,
+        headers: HashMap<String, String>,
+    ) -> Self {
         Self {
             method,
             path,
+            body,
             headers,
         }
     }
@@ -50,7 +59,18 @@ pub fn parse_request(request_string: &str) -> HTTPRequest {
         headers.insert(header_values[0].clone(), header_values[1].trim().to_owned());
     }
 
-    HTTPRequest::new(method, route.to_string(), headers)
+    let body = lines
+        //* Here I check for empty and not \r\n (separator between headers and body)
+        //* due to the \r\n getting removed by split_ascii_whitespace
+        .split_at(lines.iter().position(|r| r.is_empty()).unwrap() + 1)
+        .1 // .0 just contains headers
+        .first()
+        .unwrap()
+        .to_owned();
+
+    println!("[body] {}", body);
+
+    HTTPRequest::new(method, route.to_string(), body, headers)
 }
 
 pub fn create_response(code: String, content_type: String, body: String) -> String {
@@ -75,6 +95,29 @@ pub fn serve_file(path: PathBuf) -> String {
         String::from(NOT_FOUND_RESPONSE)
     }
 }
+pub fn save_file(path: PathBuf, content: String) -> String {
+    if !path.exists() {
+        let content = content.replace("\0", ""); // Remove all '\0's
+        let content = content.replace(r"\r\n", "\n"); // Interpret '\r\n' as newlines
+        let content = content.replace(r"\n", "\n"); // Interpret '\n' as newlines
+
+        let mut file = File::create(path).expect("Couldn't create file");
+        file.write_all(content.as_bytes())
+            .expect("Couldn't write to file");
+        create_response(
+            "201 CREATED".to_string(),
+            "text/plain".to_string(),
+            "".to_string(),
+        )
+    } else {
+        create_response(
+            "500 INTERNAL SERVER ERROR".to_string(),
+            "text/plain".to_string(),
+            "".to_string(),
+        )
+    }
+}
+
 impl std::fmt::Display for HTTPMethod {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

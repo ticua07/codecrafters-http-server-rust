@@ -5,12 +5,12 @@ use std::path::PathBuf;
 use std::thread;
 
 use crate::cli::get_directory;
-use crate::utils::{create_response, parse_request, serve_file};
+use crate::utils::{create_response, parse_request, save_file, serve_file, HTTPMethod};
 mod cli;
 mod utils;
 
 fn handle_conn(stream: &mut TcpStream, directory: PathBuf) {
-    let mut request_buffer = [0; 512];
+    let mut request_buffer = [0; 1024];
 
     stream.read(&mut request_buffer).unwrap();
 
@@ -18,37 +18,66 @@ fn handle_conn(stream: &mut TcpStream, directory: PathBuf) {
     println!("[DATA]: {}", request_str);
 
     let req = parse_request(request_str);
+    let mut response = String::new();
+    if req.method == HTTPMethod::GET {
+        response = match req.path.as_str() {
+            "/" => create_response(
+                "200 OK".to_string(),
+                "text/plain".to_string(),
+                String::new(),
+            ),
+            "/user-agent" => create_response(
+                "200 OK".to_string(),
+                "text/plain".to_string(),
+                req.headers
+                    .get(&"User-Agent" as &str)
+                    .expect("Couldn't find header User-Agent")
+                    .clone(),
+            ),
+            s if s.starts_with("/files/") => {
+                let filename = req.path.replace("/files/", "");
 
-    let response = match req.path.as_str() {
-        "/" => create_response(
-            "200 OK".to_string(),
-            "text/plain".to_string(),
-            String::new(),
-        ),
-        "/user-agent" => create_response(
-            "200 OK".to_string(),
-            "text/plain".to_string(),
-            req.headers
-                .get(&"User-Agent" as &str)
-                .expect("Couldn't find header User-Agent")
-                .clone(),
-        ),
-        s if s.starts_with("/files/") => {
-            let filename = req.path.replace("/files/", "");
+                serve_file(directory.join(filename))
+            }
+            s if s.starts_with("/echo/") => {
+                let temp: String = req.path.replace("/echo/", "");
+                let response =
+                    create_response("200 OK".to_string(), "text/plain".to_string(), temp);
+                response
+            }
+            _ => String::from(create_response(
+                "404 NOT FOUND".to_string(),
+                "text/plain".to_string(),
+                "not found.".to_string(),
+            )),
+        };
+    } else if req.method == HTTPMethod::POST {
+        response = match req.path.as_str() {
+            "/" => create_response(
+                "200 OK".to_string(),
+                "text/plain".to_string(),
+                String::new(),
+            ),
+            s if s.starts_with("/files/") => {
+                let filename = req.path.replace("/files/", "");
+                // save_file(filename)
 
-            serve_file(directory.join(filename))
-        }
-        s if s.starts_with("/echo/") => {
-            let temp: String = req.path.replace("/echo/", "");
-            let response = create_response("200 OK".to_string(), "text/plain".to_string(), temp);
-            response
-        }
-        _ => String::from(create_response(
+                save_file(directory.join(filename), req.body)
+            }
+
+            _ => String::from(create_response(
+                "404 NOT FOUND".to_string(),
+                "text/plain".to_string(),
+                "not found.".to_string(),
+            )),
+        };
+    } else {
+        response = String::from(create_response(
             "404 NOT FOUND".to_string(),
             "text/plain".to_string(),
             "not found.".to_string(),
-        )),
-    };
+        ));
+    }
 
     stream
         .write(response.as_bytes())
